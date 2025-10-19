@@ -14,6 +14,7 @@ class Introduccion:
         Introduccion.intro_nanomateriales(self)
         Introduccion.nanomateriales(self)
         Introduccion.gqd(self)
+        Introduccion.gqd_quenching(self)
     
     @staticmethod
     def introAgua(self):
@@ -539,20 +540,25 @@ class Introduccion:
 
         gqd_pristino = SVGMobject(f'{HOME}\\gqd_structure.svg').scale(2).to_edge(LEFT, buff=1)
         
-        propiedades_base = VGroup(
-            Tex("1. Propiedades heredadas del grafeno."),
-            Tex("2. Confinamiento cuántico."),
-            Tex("3. Biocompatibilidad."),
-            Tex(r"4. \textbf{Fluorescencia sintonizable\\por química de superficie.}"),
-        ).scale(0.8).arrange(DOWN, aligned_edge=LEFT, buff=0.4).to_edge(RIGHT, buff=1)
+        # Propiedades divididas en dos grupos
+        propiedades_heredadas = VGroup(
+        Text("1. Donador y aceptor de electrones", font_size=NORMAL_SIZE),
+        Text("2. Superficie químicamente modificable", font_size=NORMAL_SIZE)
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.4).to_edge(RIGHT, buff=1).shift(UP)
+
+        propiedades_unicas = VGroup(
+        Text("3. Confinamiento cuántico de dominios π", font_size=NORMAL_SIZE, color=RED_B),
+        Text("4. Biocompatibilidad e hidrosolubilidad", font_size=NORMAL_SIZE, color=RED_B),
+        Text("5. Fluorescencia estable y ajustable", font_size=NORMAL_SIZE, color=RED_B)
+        ).arrange(DOWN, aligned_edge=LEFT, buff=0.4).next_to(propiedades_heredadas, DOWN, buff=0.2).shift(DOWN*0.5)
         
         self.play(Write(slide_title_gqd))
-        self.play(FadeIn(gqd_pristino), Write(propiedades_base[0:3]))
+        self.play(FadeIn(gqd_pristino), Write(propiedades_heredadas))
         self.next_slide(notes="La propiedad clave es que su fluorescencia puede ser modificada.")
         
         gqd_fluorescente = SVGMobject(f'{HOME}\\gqd_fluorescence.svg').scale(2).move_to(gqd_pristino)
         
-        self.play(ReplacementTransform(gqd_pristino, gqd_fluorescente), Write(propiedades_base[3]))
+        self.play(ReplacementTransform(gqd_pristino, gqd_fluorescente), Write(propiedades_unicas))
         self.next_slide()
         
         # --- Diapositiva 2: Sintonizando la Fluorescencia ---
@@ -562,10 +568,10 @@ class Introduccion:
         axes = Axes(
             x_range=[400, 700, 50], y_range=[0, 1.8, 0.5],
             x_length=7, y_length=4,
-            axis_config={"include_numbers": True, "font_size": 24}
+            axis_config={"include_numbers": True, "font_size": 21}
         ).to_edge(RIGHT, buff=1)
-        x_label = axes.get_x_axis_label(Tex("Longitud de Onda (nm)"), edge=DOWN, direction=DOWN, buff=0.4)
-        y_label = axes.get_y_axis_label(Tex("Intensidad PL (u.a.)").rotate(90 * DEGREES), edge=LEFT, direction=LEFT, buff=0.5)
+        x_label = axes.get_x_axis_label(Tex("Longitud de Onda (nm)"), edge=DOWN, direction=DOWN, buff=0.35)
+        y_label = axes.get_y_axis_label(Tex("Intensidad PL (u.a.)").rotate(90 * DEGREES), edge=LEFT, direction=LEFT, buff=0.35)
         pl_plot_group = VGroup(axes, x_label, y_label)
         self.play(Create(pl_plot_group))
 
@@ -584,7 +590,7 @@ class Introduccion:
         ]
 
         # Elementos que se transformarán
-        current_gqd_svg = SVGMobject(gqd_data[0]["file"]).scale(1.8).to_edge(LEFT, buff=0.8)
+        current_gqd_svg = SVGMobject(gqd_data[0]["file"]).scale(1.7).to_edge(LEFT, buff=0.8)
         current_gqd_label = Tex(gqd_data[0]["name"], font_size=NORMAL_SIZE).next_to(current_gqd_svg, DOWN)
         current_pl_curve = get_pl_curve(gqd_data[0]["amplitude"], color=gqd_data[0]["color"])
 
@@ -598,7 +604,7 @@ class Introduccion:
 
         # Transformaciones secuenciales
         for data in gqd_data[1:]:
-            new_gqd_svg = SVGMobject(data["file"]).scale(1.8).move_to(current_gqd_svg)
+            new_gqd_svg = SVGMobject(data["file"]).scale(1.7).move_to(current_gqd_svg)
             new_gqd_label = Tex(data["name"], font_size=NORMAL_SIZE).next_to(new_gqd_svg, DOWN)
             new_pl_curve = get_pl_curve(data["amplitude"], color=data["color"])
 
@@ -611,10 +617,146 @@ class Introduccion:
 
         # Conclusión final de la sección
         highlight_text = Tex(r"Estrategia Clave:\\Alto Rendimiento Cuántico", font_size=NORMAL_SIZE, color=GREEN_B).next_to(current_pl_curve, UP, buff=0.2)
-        final_note = Tex(r"...y provee los grupos amino (-NH$_2$) necesarios para la detección.", font_size=NORMAL_SIZE).next_to(current_pl_curve, DOWN, buff=0.5)
+        final_note = Tex(r"...y provee los grupos amino (-NH$_2$) necesarios para la detección.", font_size=NORMAL_SIZE).to_edge(DOWN, buff=0.8)
         
         self.play(Write(highlight_text))
         self.play(Write(final_note))
         
+        self.next_slide(notes="Partimos del N-GQD, que muestra una alta fluorescencia inicial.")
+        self.clear_allSlide_fade()
+    
+    @staticmethod
+    def gqd_quenching(self):
+        """
+        Versión pulida que explica el mecanismo de extinción de fluorescencia
+        vinculándolo explícitamente a una reacción tipo Griess en la superficie del N-GQD.
+        """
+        # Fijar la semilla para reproducibilidad
+        np.random.seed(1)
+        
+        # --- Diapositiva 1: El Estado Inicial ---
+        self.update_canvas()
+        slide_title_quenching = Title('Mecanismo de Detección: Extinción de Fluorescencia', font_size=TITLE_SIZE)
+        self.canvas['title'] = slide_title_quenching
+
+        # Configuración de N-GQD y espectro PL (similar a antes)
+        n_gqd_svg = SVGMobject(f'{HOME}\\n_gqd.svg').scale(1.8).to_edge(LEFT, buff=0.8)
+        n_gqd_label = Tex("N-GQD", font_size=NORMAL_SIZE).next_to(n_gqd_svg, DOWN)
+        
+        axes = Axes(
+            x_range=[400, 700, 50], y_range=[0, 1.8, 0.5],
+            x_length=7, y_length=4,
+            axis_config={"include_numbers": True, "font_size": 24},
+        ).to_edge(RIGHT, buff=1)
+        pl_plot_group = VGroup(axes, axes.get_x_axis_label(Tex("Longitud de Onda (nm)")), axes.get_y_axis_label(Tex("Intensidad PL").rotate(PI/2)))
+
+        def get_pl_curve(amplitude, color=GREEN_B):
+            return axes.plot(lambda x: amplitude * np.exp(-((x - 525)**2) / (2 * 35**2)), color=color, stroke_width=4)
+
+        initial_amplitude = 1.5
+        current_pl_curve = get_pl_curve(initial_amplitude)
+
+        self.play(Write(slide_title_quenching))
+        self.play(
+            DrawBorderThenFill(n_gqd_svg),
+            Write(n_gqd_label),
+            Create(pl_plot_group),
+            Create(current_pl_curve)
+        )
+        self.next_slide(notes="La reacción, al igual que la de Griess, requiere un medio ácido.")
+
+        # --- Diapositiva 2: El Mecanismo Químico ---
+        ph_acido_tex = Tex(r"Medio Ácido ($H^+$)", font_size=NORMAL_SIZE, color=RED_A).next_to(n_gqd_svg, UP, buff=0.2)
+        nitrito_mol = Tex(r"$NO_2^-$", font_size=NORMAL_SIZE, color=ORANGE).next_to(n_gqd_svg, RIGHT, buff=0.5)
+        
+        # Representación del grupo amino en la superficie
+        grupo_amino = Tex(r"-NH$_2$", color=YELLOW).move_to(n_gqd_svg.get_center() + RIGHT*0.5 + UP*0.8)
+        
+        self.play(Write(ph_acido_tex), )
+        self.play(FadeIn(grupo_amino, scale=0.5))
+        self.play(FadeIn(nitrito_mol, shift=LEFT))
+        self.next_slide(notes="El nitrógeno dopante provee grupos amino en la superficie.")
+
+        # Transformación química
+        grupo_diazo = Tex(r"-N=N-", color=RED).move_to(grupo_amino)
+        explanation_text = Tex(r"Reacción tipo Griess en la superficie:", font_size=NORMAL_SIZE-4).to_edge(DOWN)
+        explanation_text2 = Tex(r"El grupo amino se convierte en un \\textbf{grupo diazo}, un 'quencher' de fluorescencia.", font_size=NORMAL_SIZE-4).next_to(explanation_text, DOWN)
+        
+        new_pl_curve = get_pl_curve(initial_amplitude * 0.15, color=RED_D) # Drástica caída
+
+        self.play(nitrito_mol.animate.move_to(grupo_amino.get_center() + LEFT*0.2))
+        self.play(
+            ReplacementTransform(grupo_amino, grupo_diazo),
+            FadeOut(nitrito_mol),
+            Transform(current_pl_curve, new_pl_curve),
+            Write(explanation_text),
+            )
+        self.play(Write(explanation_text2))
+        self.next_slide()
+
+        # --- Diapositiva 3: Efecto de la Concentración ---
+        nitritos_group = VGroup() # Para agrupar las moléculas de nitrito
+        self.play(FadeOut(grupo_diazo, explanation_text, explanation_text2))
+        # Texto indicador de concentración de nitritos
+        concentracion_label = Tex("Concentración de $NO_2^-$:", font_size=NORMAL_SIZE-4).to_edge(DOWN, buff=1.1).shift(LEFT*2)
+        concentracion_valor_str = "Baja"
+        concentracion_valor = Tex(concentracion_valor_str, font_size=NORMAL_SIZE-4, color=YELLOW).next_to(concentracion_label, RIGHT, buff=0.4)
+        self.play(Write(concentracion_label), Write(concentracion_valor))
+         
+        quenching_steps = [
+            {"amplitude": 1.2, "num_nitritos": 3, "conc_text": "Moderada", "color": YELLOW_D, "notes": "Al añadir nitritos, la fluorescencia comienza a disminuir."},
+            {"amplitude": 0.7, "num_nitritos": 6, "conc_text": "Media", "color": ORANGE, "notes": "Mayor concentración de nitritos, mayor extinción de fluorescencia."},
+            {"amplitude": 0.3, "num_nitritos": 9, "conc_text": "Alta", "color": RED_D, "notes": "Con alta concentración de nitritos, la fluorescencia se extingue casi por completo."}
+        ]
+
+        # Posiciones para las moléculas de nitrito alrededor del N-GQD
+        nitrito_positions_area = Circle(radius=n_gqd_svg.height/2 + 0.3).move_to(n_gqd_svg.get_center())
+
+        for i, step in enumerate(quenching_steps):
+            self.next_slide(notes=step["notes"])
+
+            # Añadir más moléculas de nitrito
+            new_nitritos_to_add = VGroup()
+            current_num_nitritos_on_screen = len(nitritos_group)
+            num_to_actually_add = step["num_nitritos"] - current_num_nitritos_on_screen
+
+            for _ in range(num_to_actually_add):
+                # Posición aleatoria alrededor del N-GQD para los nuevos nitritos
+                angle = np.random.uniform(0, TAU)
+                pos_on_circle = nitrito_positions_area.point_from_proportion(angle / TAU) # punto en el círculo
+                # Pequeña variación para que no se solapen exactamente en el círculo
+                random_offset = np.array([np.random.uniform(-0.3,0.3), np.random.uniform(-0.3,0.3), 0])
+                final_pos = pos_on_circle + random_offset
+
+                nitrito_mol = nitrito_mol.copy().move_to(final_pos)
+                new_nitritos_to_add.add(nitrito_mol)
+
+            # Actualizar texto de concentración
+            new_concentracion_valor = Tex(step["conc_text"], font_size=NORMAL_SIZE-4, color=step["color"]).move_to(concentracion_valor)
+
+            # Animar la aparición de nuevos nitritos y la disminución de la PL
+            new_pl_curve = get_pl_curve(step["amplitude"]) # El color del pico se mantiene verde, pero su intensidad baja
+
+            animations = [
+                Transform(current_pl_curve, new_pl_curve),
+                Transform(concentracion_valor_str, new_concentracion_valor)
+            ]
+            if len(new_nitritos_to_add) > 0:
+                animations.append(FadeIn(new_nitritos_to_add, scale=0.5, lag_ratio=0.2))
+
+            self.play(*animations)
+            nitritos_group.add(*new_nitritos_to_add) # Añade los nuevos a la cuenta
+
+        self.next_slide(notes="Este fenómeno de extinción de fluorescencia es la base del sensor de nitritos.")
+
+        conclusion_quenching = Tex(
+            "La interacción N-GQD + $NO_2^-$ (en medio ácido) causa la extinción de la fluorescencia.",
+            font_size=NORMAL_SIZE-2
+        ).next_to(concentracion_label.get_bottom() + DOWN + concentracion_valor.get_bottom() + DOWN, DOWN, buff=0.5) # Ajusta la posición
+        conclusion_quenching.align_to(concentracion_label, LEFT)
+
+        self.play(Write(conclusion_quenching))
+        self.next_slide(notes='Sin embargo, debido a la gran facilidad de síntesis se han' \
+        'desarrollado un sinfín de rutas para su obtención, perdiendo un poco de vista el enfoque a una utilidad práctica.')
         self.next_slide()
         self.clear_allSlide_fade()
