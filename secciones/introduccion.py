@@ -11,6 +11,9 @@ class Introduccion:
         Introduccion.deteccionNitritos(self)
         Introduccion.desventajasDeteccion(self)
         Introduccion.sensoresOp(self)
+        Introduccion.intro_nanomateriales(self)
+        Introduccion.nanomateriales(self)
+        Introduccion.gqd(self)
     
     @staticmethod
     def introAgua(self):
@@ -263,9 +266,11 @@ class Introduccion:
         componentes = crear_diagrama_sensor_base()
         diagrama_base = VGroup(
             componentes["fuente"], componentes["fuente_label"],
+            componentes['selector'], componentes['selector_label'],
             componentes["muestra"], componentes["muestra_label"],
-            componentes["detector"], componentes["detector_label"]
-        ).center().shift(UP * 1.5)
+            componentes["detector"], componentes["detector_label"],
+            componentes['procesador'], componentes['procesador_label']
+        ).center().shift(UP)
         
         # Área de contenido inferior
         texto_inferior = Tex("Permiten diseñar un instrumento a la medida con componentes asequibles.", font_size=NORMAL_SIZE).to_edge(DOWN, buff=1.5)
@@ -279,25 +284,25 @@ class Introduccion:
             )
         )
         self.play(Write(texto_inferior))
-        self.next_slide()
+        self.next_slide(notes="Primero, elegimos la fuente de luz.")
 
         # --- Paso 1: Fuente de Luz ---
         highlight_fuente = SurroundingRectangle(VGroup(componentes["fuente"], componentes["fuente_label"]), color=YELLOW)
 
         img_led = ImageMobject(f'{HOME}\\fuentes_luz_sensores.png').scale(0.5)
         label_led = Tex(r"(a) lámparas de descarga de gas, (b) LEDs acopladas a fibras ópticas y (c) diodos láser.", font_size=NORMAL_SIZE-10).next_to(img_led, DOWN)
-        opcion_fuente = VGroup(img_led, label_led).move_to(texto_inferior.get_center())
+        opcion_fuente = Group(img_led, label_led).move_to(texto_inferior.get_center())
 
         self.play(Create(highlight_fuente))
         self.wipe(texto_inferior, opcion_fuente)
-        self.next_slide(notes="Primero, elegimos la fuente de luz.")
+        self.next_slide(notes="Luego, añadimos un selector de onda.")
 
         # --- Paso 2: Selector de Onda ---
         highlight_selector = SurroundingRectangle(VGroup(componentes["selector"], componentes["selector_label"]), color=YELLOW)
         
         img_mono = ImageMobject(f'{HOME}\\selectores_sensores.png').scale(0.6)
         label_mono = Tex("(a) filtro de longitud de onda y (b) monocromadores", font_size=NORMAL_SIZE-10).next_to(img_mono, DOWN)
-        opcion_selector = VGroup(img_mono, label_mono).move_to(texto_inferior.get_center())
+        opcion_selector = Group(img_mono, label_mono).move_to(texto_inferior.get_center())
         
         self.play(
             FadeOut(highlight_fuente),
@@ -306,19 +311,19 @@ class Introduccion:
         )
 
         self.play(Create(highlight_selector))
-        self.wipe(texto_inferior, opcion_selector)
-        self.next_slide(notes="Luego, añadimos un selector de onda.")
+        self.wipe(opcion_fuente, opcion_selector)
+        self.next_slide(notes="El corazón del sensor es el elemento en la muestra.")
 
         # --- Paso 3: Elemento Sensibilizador ---
-        elemento_sensibilizador = Tex("Elemento Sensibilizador", color=ORANGE).scale(0.7).move_to(componentes["muestra"])
-        arrow_to_sample = Arrow(elemento_sensibilizador.get_bottom() + DOWN*0.2, componentes["muestra"].get_top(), buff=0.1, color=ORANGE)
+        elemento_sensibilizador = Tex("Elemento Sensibilizador", font_size=NORMAL_SIZE, color=ORANGE).next_to(componentes["muestra"], DOWN, buff=1)
+        arrow_to_sample = Arrow(elemento_sensibilizador.get_top() + UP*0.1, componentes["muestra"].get_center(), buff=0.1, color=ORANGE)
         
         # Animación de rayos de luz
         rayo_in = Line(componentes["fuente"].get_right(), componentes["selector"].get_left(), color=PURPLE, stroke_width=5)
         rayo_mid1 = Line(componentes["selector"].get_right(), componentes["muestra"].get_left(), color=PURPLE, stroke_width=5)
         rayo_out = Line(componentes["muestra"].get_right(), componentes["detector"].get_left(), color=GREEN, stroke_width=5)
         
-        self.play(FadeOut(highlight_selector, texto_inferior), notes="El corazón del sensor es el elemento en la muestra.")
+        self.play(FadeOut(highlight_selector, opcion_selector))
         self.play(Write(elemento_sensibilizador), GrowArrow(arrow_to_sample))
         self.play(
             componentes["fuente"].submobjects[1].animate.set_color(PURPLE_B), # Cambiar color del emisor del LED
@@ -327,19 +332,19 @@ class Introduccion:
             ShowPassingFlash(rayo_out.copy().set_color(WHITE))
         )
         self.add(rayo_in, rayo_mid1, rayo_out)
-        self.next_slide()
+        self.next_slide(notes="El detector convierte la luz en una señal eléctrica.")
         
         # --- Paso 4: Detector de Luz ---
         highlight_detector = SurroundingRectangle(VGroup(componentes["detector"], componentes["detector_label"]), color=YELLOW)
 
         img_pmt = ImageMobject(f'{HOME}\\fotodetectores_sensores.png').scale(0.5)
         label_pmt = Tex("fotodetectores tipo (a) fotodiodos, (b) fotodiodos de avalancha y (c) fotomultiplicadores.", font_size=NORMAL_SIZE-10).next_to(img_pmt, DOWN)
-        opcion_detector = VGroup(img_pmt, label_pmt).move_to(texto_inferior.get_center())
+        opcion_detector = Group(img_pmt, label_pmt).move_to(texto_inferior.get_center())
 
         self.play(FadeOut(elemento_sensibilizador, arrow_to_sample))
         self.play(Create(highlight_detector))
         self.play(FadeIn(opcion_detector))
-        self.next_slide(notes="El detector convierte la luz en una señal eléctrica.")
+        self.next_slide(notes="Finalmente, un procesador interpreta la señal.")
         
         # --- Paso 5: Procesador de Señal ---
         highlight_procesador = SurroundingRectangle(VGroup(componentes["procesador"], componentes["procesador_label"]), color=YELLOW)
@@ -353,7 +358,263 @@ class Introduccion:
             componentes["procesador_label"].animate.set_opacity(1),
         )
         self.play(Create(highlight_procesador))
-        self.play(Create(linea_a_procesador), Write(texto_final), notes="Finalmente, un procesador interpreta la señal.")
+        self.play(Create(linea_a_procesador), Write(texto_final))
         self.next_slide()
 
+        self.clear_allSlide_fade()
+    
+    @staticmethod
+    def intro_nanomateriales(self):
+        """
+        Introduce la diferencia entre materiales bulk y nanomateriales,
+        destacando la fluorescencia como propiedad clave para los sensores.
+        Utiliza una semilla de np.random para animaciones consistentes.
+        """
+        np.random.seed(0)
+
+        # --- Título de la diapositiva ---
+        self.update_canvas()
+        slide_title_NM = Title('Nanomateriales vs. Materiales Bulk', font_size=TITLE_SIZE)
+        self.canvas['title'] = slide_title_NM
+        self.play(Write(self.canvas['title']))
+
+        # --- Parte 1: Material Bulk ---
+        bulk_material_label = Tex("Material Bulk", font_size=NORMAL_SIZE).to_edge(UP, buff=1.8).shift(LEFT * 3.5)
+        bulk_material = Rectangle(width=3.5, height=2.5, color=BLUE_E, fill_opacity=0.7).next_to(bulk_material_label, DOWN, buff=0.4)
+
+        # Átomos desorganizados (ahora con posiciones reproducibles)
+        bulk_atoms = VGroup()
+        for _ in range(35):
+            x_offset = np.random.uniform(-bulk_material.width / 2 + 0.2, bulk_material.width / 2 - 0.2)
+            y_offset = np.random.uniform(-bulk_material.height / 2 + 0.2, bulk_material.height / 2 - 0.2)
+            bulk_atoms.add(Dot(radius=0.06, color=random_bright_color()).move_to(bulk_material.get_center() + RIGHT * x_offset + UP * y_offset))
+
+        bulk_group = VGroup(bulk_material_label, bulk_material, bulk_atoms)
+        self.play(FadeIn(bulk_group, shift=RIGHT))
+        self.next_slide(notes="Los materiales bulk tienen propiedades ópticas predecibles.")
+
+        # Interacción de la luz con el material bulk
+        light_source_bulk = Dot(bulk_material.get_left() + LEFT * 2.5 + UP * 0.5, color=YELLOW)
+        incident_light_bulk = Arrow(light_source_bulk.get_center(), bulk_material.get_left() + UP * 0.5, buff=0.1, color=YELLOW, stroke_width=6)
+        reflected_light_bulk = Arrow(bulk_material.get_left() + UP * 0.5, bulk_material.get_left() + LEFT * 1.5 + UP * 1.2, buff=0.1, color=YELLOW, stroke_width=4, max_tip_length_to_length_ratio=0.2)
+        absorbed_text_bulk = Tex("Absorción y Reflexión simple", font_size=NORMAL_SIZE).next_to(bulk_material, DOWN, buff=0.5)
+
+        self.play(Create(light_source_bulk))
+        self.play(GrowArrow(incident_light_bulk))
+        self.play(GrowArrow(reflected_light_bulk), Write(absorbed_text_bulk), run_time=1)
+        self.next_slide(notes="Pero al reducir la dimensionalidad a nanoescala, emergen propiedades cuánticas.")
+        self.play(FadeOut(light_source_bulk, incident_light_bulk, reflected_light_bulk, absorbed_text_bulk))
+
+        # --- Parte 2: Transición a Nanomateriales ---
+        nano_material_label = Tex("Nanomateriales (Puntos Cuánticos)", font_size=NORMAL_SIZE).to_edge(UP, buff=1.8).shift(RIGHT * 3.5)
+        nano_area = Circle(radius=1.5, color=DARK_BLUE, fill_opacity=0.3).next_to(nano_material_label, DOWN, buff=0.4)
+        
+        # Simular puntos cuánticos (posiciones fijas para consistencia)
+        qds = VGroup(*[
+            Dot(radius=0.18, color=BLUE_D).move_to(nano_area.get_center() + pos)
+            for pos in [
+                RIGHT * 0.8 + UP * 0.3, LEFT * 0.5 + UP * 0.8,
+                RIGHT * 0.1 + DOWN * 0.9, LEFT * 0.9,
+                RIGHT * 0.9 + DOWN * 0.2, LEFT*0.2 + DOWN*0.4
+            ]
+        ])
+
+        nano_group = VGroup(nano_material_label, nano_area, qds)
+        self.play(Transform(bulk_group, nano_group), run_time=1.5)
+        self.next_slide(notes="Estos materiales, como los puntos cuánticos de grafeno, pueden exhibir fluorescencia.")
+
+        # --- Parte 3: Fenómeno de Fluorescencia ---
+        light_source_nano = Dot(nano_area.get_left() + LEFT * 2.5, color=PURPLE_A)
+        incident_light_nano = Arrow(light_source_nano.get_center(), nano_area.get_center() + LEFT * nano_area.radius * 0.8, buff=0.1, color=PURPLE_C, stroke_width=6)
+
+        self.play(Create(light_source_nano))
+        self.play(GrowArrow(incident_light_nano))
+
+        # Animación de fluorescencia (emisión de luz)
+        emitted_lights_nano = VGroup()
+        colors_emission = [GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E, LIGHT_BROWN]
+        
+        animations = []
+        for i, qd in enumerate(qds):
+            # Animar el "encendido" de cada punto cuántico
+            animations.append(qd.animate.set_color(colors_emission[i]))
+        self.play(LaggedStart(*animations, lag_ratio=0.1))
+
+        for i, qd in enumerate(qds):
+            # Emiten luz en varias direcciones (ahora reproducibles)
+            for j in range(3):
+                angle = TAU * j / 3 + np.random.uniform(-0.2, 0.2)
+                direction = np.array([np.cos(angle), np.sin(angle), 0])
+                emitted_ray = Arrow(qd.get_center(), qd.get_center() + direction * 0.8, buff=0.05, color=colors_emission[i], stroke_width=4, max_tip_length_to_length_ratio=0.3)
+                emitted_lights_nano.add(emitted_ray)
+        
+        fluorescence_text = Tex(r"Fluorescencia:\\Absorción UV $\rightarrow$ Emisión Visible", font_size=NORMAL_SIZE).next_to(nano_area, DOWN, buff=0.5)
+        self.play(LaggedStart(*[GrowArrow(ray) for ray in emitted_lights_nano], lag_ratio=0.05), Write(fluorescence_text))
+
+        self.next_slide(notes="Esta propiedad es la que los convierte en excelentes elementos sensibilizadores.")
+        
+        # Conclusión final
+        conclusion_text = Paragraph(
+            "Su capacidad de convertir luz UV en visible",
+            "es la clave para el diseño de un sensor.",
+            font_size=NORMAL_SIZE, alignment="center"
+        ).to_edge(DOWN)
+        
+        # Eliminar todo excepto el título y el grupo nano
+        elementos_a_quitar = VGroup(light_source_nano, incident_light_nano, emitted_lights_nano, fluorescence_text)
+        self.play(FadeOut(elementos_a_quitar))
+        self.play(Write(conclusion_text))
+
+        self.next_slide()
+        self.clear_allSlide_fade()
+    
+    @staticmethod
+    def nanomateriales(self):
+        """
+        Versión resumida y enfocada que muestra la progresión de los nanomateriales 
+        a base de carbono, desde el grafito hasta el GQD.
+        """
+        self.update_canvas()
+        slide_title = Title('Nanomateriales a Base de Carbono', font_size=TITLE_SIZE)
+        self.canvas['title'] = slide_title
+        
+        description = Tex("Deriva de la familia del grafeno:", font_size=NORMAL_SIZE).next_to(slide_title, DOWN, buff=0.4)
+        self.play(Write(slide_title), Write(description))
+        self.next_slide(notes="Comenzamos con el grafito, un material 3D.\n"+
+                        "Al exfoliarlo, obtenemos grafeno, una lámina 2D.\n"+
+                        "Que puede enrollarse en nanotubos de 1D.\n"+
+                        "Y al fragmentarlo, llegamos a los puntos cuánticos de grafeno.")
+
+        # --- Cargar y posicionar todos los elementos ---
+        grafito = ImageMobject(f'{HOME}\\graphite.png').set_height(2)
+        grafeno = ImageMobject(f'{HOME}\\graphene.png').set_height(2)
+        nanotubo = SVGMobject(f'{HOME}\\nanotube.svg').set_height(2)
+        gqd = SVGMobject(f'{HOME}\\gqd_structure.svg').set_height(2)
+        
+        estructuras = Group(grafito, grafeno, nanotubo, gqd).arrange(RIGHT, buff=1.5).center().shift(UP*0.5)
+
+        # Etiquetas
+        label_grafito = Tex("Grafito (3D Bulk)", font_size=NORMAL_SIZE-8).next_to(grafito, DOWN)
+        label_grafeno = Tex("Grafeno (2D)", font_size=NORMAL_SIZE-8).next_to(grafeno, DOWN)
+        label_nanotubo = Tex("Nanotubo (1D)", font_size=NORMAL_SIZE-8).next_to(nanotubo, DOWN)
+        label_gqd = Tex("Punto Cuántico (0D)", font_size=NORMAL_SIZE-8).next_to(gqd, DOWN)
+        labels = VGroup(label_grafito, label_grafeno, label_nanotubo, label_gqd)
+
+        # Flechas de progresión
+        arrow1 = Arrow(grafito.get_right(), grafeno.get_left(), buff=0.3)
+        arrow2 = Arrow(grafeno.get_right(), nanotubo.get_left(), buff=0.3)
+        arrow3 = Arrow(nanotubo.get_right(), gqd.get_left(), buff=0.3)
+        arrows = VGroup(arrow1, arrow2, arrow3)
+
+        # --- Animación Secuencial ---
+        self.play(FadeOut(description))
+
+        # 1. Aparece el Grafito
+        self.play(FadeIn(grafito), Write(label_grafito))
+        self.play(GrowArrow(arrow1))
+
+        # 2. Aparece el Grafeno
+        self.play(FadeIn(grafeno), Write(label_grafeno))
+        self.play(GrowArrow(arrow2))
+
+        # 3. Aparece el Nanotubo
+        self.play(FadeIn(nanotubo), Write(label_nanotubo))
+        self.play(GrowArrow(arrow3))
+
+        # 4. Aparece el GQD (el importante)
+        self.play(FadeIn(gqd), Write(label_gqd))
+        self.next_slide()
+        self.clear_allSlide_fade()
+    
+    @staticmethod
+    def gqd(self):
+        """
+        Versión reescrita que presenta los GQD y su funcionalización como un
+        proceso de 'ingeniería' para sintonizar sus propiedades ópticas.
+        """
+        # --- Diapositiva 1: Propiedades del GQD ---
+        self.update_canvas()
+        slide_title_gqd = Title('Puntos Cuánticos de Grafeno (GQD)', font_size=TITLE_SIZE)
+        self.canvas['title'] = slide_title_gqd
+
+        gqd_pristino = SVGMobject(f'{HOME}\\gqd_structure.svg').scale(2).to_edge(LEFT, buff=1)
+        
+        propiedades_base = VGroup(
+            Tex("1. Propiedades heredadas del grafeno."),
+            Tex("2. Confinamiento cuántico."),
+            Tex("3. Biocompatibilidad."),
+            Tex(r"4. \textbf{Fluorescencia sintonizable\\por química de superficie.}"),
+        ).scale(0.8).arrange(DOWN, aligned_edge=LEFT, buff=0.4).to_edge(RIGHT, buff=1)
+        
+        self.play(Write(slide_title_gqd))
+        self.play(FadeIn(gqd_pristino), Write(propiedades_base[0:3]))
+        self.next_slide(notes="La propiedad clave es que su fluorescencia puede ser modificada.")
+        
+        gqd_fluorescente = SVGMobject(f'{HOME}\\gqd_fluorescence.svg').scale(2).move_to(gqd_pristino)
+        
+        self.play(ReplacementTransform(gqd_pristino, gqd_fluorescente), Write(propiedades_base[3]))
+        self.next_slide()
+        
+        # --- Diapositiva 2: Sintonizando la Fluorescencia ---
+        self.clear_slide_content()
+
+        # Configuración de ejes para el espectro PL
+        axes = Axes(
+            x_range=[400, 700, 50], y_range=[0, 1.8, 0.5],
+            x_length=7, y_length=4,
+            axis_config={"include_numbers": True, "font_size": 24}
+        ).to_edge(RIGHT, buff=1)
+        x_label = axes.get_x_axis_label(Tex("Longitud de Onda (nm)"), edge=DOWN, direction=DOWN, buff=0.4)
+        y_label = axes.get_y_axis_label(Tex("Intensidad PL (u.a.)").rotate(90 * DEGREES), edge=LEFT, direction=LEFT, buff=0.5)
+        pl_plot_group = VGroup(axes, x_label, y_label)
+        self.play(Create(pl_plot_group))
+
+        # Función para generar curvas gaussianas
+        def get_pl_curve(amplitude, center_wl=525, sigma=35, color=GREEN_C):
+            return axes.plot(
+                lambda x: amplitude * np.exp(-((x - center_wl)**2) / (2 * sigma**2)),
+                color=color, stroke_width=4
+            )
+
+        # Datos para la animación de funcionalización (narrativa de "ingeniería")
+        gqd_data = [
+            {"file": f'{HOME}\\gqd_fluorescence.svg', "name": "GQD Base", "amplitude": 0.4, "color": BLUE_D, "notes": "La estructura base del GQD ya posee una fluorescencia fundamental."},
+            {"file": f'{HOME}\\go_dots.svg', "name": "GO-dots (Oxigenado)", "amplitude": 0.7, "color": BLUE_B, "notes": "Añadir grupos de oxígeno (GO-dots) modifica y a menudo aumenta la fluorescencia."},
+            {"file": f'{HOME}\\n_gqd.svg', "name": "N-GQD (Nitrogenado)", "amplitude": 1.5, "color": GREEN_B, "notes": "El dopaje con nitrógeno es una estrategia clave para maximizar el rendimiento cuántico."}
+        ]
+
+        # Elementos que se transformarán
+        current_gqd_svg = SVGMobject(gqd_data[0]["file"]).scale(1.8).to_edge(LEFT, buff=0.8)
+        current_gqd_label = Tex(gqd_data[0]["name"], font_size=NORMAL_SIZE).next_to(current_gqd_svg, DOWN)
+        current_pl_curve = get_pl_curve(gqd_data[0]["amplitude"], color=gqd_data[0]["color"])
+
+        self.play(
+            DrawBorderThenFill(current_gqd_svg),
+            Write(current_gqd_label),
+            Create(current_pl_curve),
+            notes=gqd_data[0]["notes"]
+        )
+        self.next_slide()
+
+        # Transformaciones secuenciales
+        for data in gqd_data[1:]:
+            new_gqd_svg = SVGMobject(data["file"]).scale(1.8).move_to(current_gqd_svg)
+            new_gqd_label = Tex(data["name"], font_size=NORMAL_SIZE).next_to(new_gqd_svg, DOWN)
+            new_pl_curve = get_pl_curve(data["amplitude"], color=data["color"])
+
+            self.play(
+                Transform(current_gqd_svg, new_gqd_svg),
+                Transform(current_gqd_label, new_gqd_label),
+                Transform(current_pl_curve, new_pl_curve)
+            )
+            self.next_slide(notes=data["notes"] +"\nAdemás, el nitrógeno nos da los 'ganchos' químicos que necesitamos para que la reacción con nitritos funcione.")
+
+        # Conclusión final de la sección
+        highlight_text = Tex(r"Estrategia Clave:\\Alto Rendimiento Cuántico", font_size=NORMAL_SIZE, color=GREEN_B).next_to(current_pl_curve, UP, buff=0.2)
+        final_note = Tex(r"...y provee los grupos amino (-NH$_2$) necesarios para la detección.", font_size=NORMAL_SIZE).next_to(current_pl_curve, DOWN, buff=0.5)
+        
+        self.play(Write(highlight_text))
+        self.play(Write(final_note))
+        
+        self.next_slide()
         self.clear_allSlide_fade()

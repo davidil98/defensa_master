@@ -122,28 +122,29 @@ def crear_diagrama_sensor_base():
     Retorna un diccionario con los componentes para fácil acceso.
     """
     # Fuente de luz (LED)
-    led_body = Circle(radius=0.3, color=DARKER_GRAY, fill_opacity=0.6)
+    led_body = Circle(radius=0.45, color=DARKER_GRAY, fill_opacity=0.3)
     led_emitter = Dot(color=RED_E, radius=0.12).move_to(led_body.get_right())
     led_group = VGroup(led_body, led_emitter).move_to(LEFT * 5.5)
-    led_label = Tex('Fuente de Luz', font_size=NORMAL_SIZE - 8).next_to(led_group, UP, buff=0.3)
+    led_label = Tex('Fuente de Luz', font_size=NORMAL_SIZE - 4).next_to(led_group, UP, buff=0.3)
 
     # Muestra
-    sample_cuvette = Rectangle(width=1.5, height=2.5, color=BLUE_C, fill_opacity=0.2)
-    sample_label = Tex('Muestra', font_size=NORMAL_SIZE - 8).next_to(sample_cuvette, UP, buff=0.3)
+    sample_cuvette = Rectangle(width=1.5, height=2.5, color=BLUE_C, fill_opacity=0.2).move_to(LEFT * 1.5)
+    sample_label = Tex('Muestra', font_size=NORMAL_SIZE - 4).next_to(sample_cuvette, UP, buff=0.3)
     
     # Selector de Onda (Filtro) - Inicialmente invisible
-    filtro = Rectangle(width=0.25, height=2.8, color=TEAL, fill_opacity=0.4).next_to(sample_cuvette, LEFT, buff=0.8).set_opacity(0)
-    filtro_label = Tex('Selector de Onda', font_size=NORMAL_SIZE - 8).next_to(filtro, UP, buff=0.3).set_opacity(0)
+    filtro = Rectangle(width=0.25, height=0.75, color=TEAL, fill_opacity=0.4
+                       ).move_to(VGroup(led_body, sample_cuvette).get_center()).set_opacity(0)
+    filtro_label = Tex('Selector de Onda', font_size=NORMAL_SIZE - 4).next_to(filtro, UP, buff=0.3).set_opacity(0)
 
     # Detector
     photodetector_area = Rectangle(width=0.8, height=1.8, color=TEAL_E, fill_opacity=0.7)
     photodetector_base = Rectangle(width=1.0, height=0.25, color=GRAY).next_to(photodetector_area, DOWN, buff=0)
-    photodetector_group = VGroup(photodetector_area, photodetector_base).move_to(RIGHT * 5.5)
-    photodetector_label = Tex('Detector', font_size=NORMAL_SIZE - 8).next_to(photodetector_group, UP, buff=0.3)
+    photodetector_group = VGroup(photodetector_area, photodetector_base).move_to(RIGHT * 1.5)
+    photodetector_label = Tex('Detector', font_size=NORMAL_SIZE - 4).next_to(photodetector_group, UP, buff=0.3)
 
     # Procesador de Señal - Inicialmente invisible
-    procesador = Square(side_length=1.8, color=ORANGE, fill_opacity=0.3).next_to(photodetector_group, RIGHT, buff=1.0).set_opacity(0)
-    procesador_label = Tex(r"Procesador\\de Señal", font_size=NORMAL_SIZE - 10).move_to(procesador).set_opacity(0)
+    procesador = Square(side_length=1.6, color=ORANGE, fill_opacity=0.3).to_edge(RIGHT, buff=0.8)
+    procesador_label = Tex(r"Procesador\\de Señal", font_size=NORMAL_SIZE - 4).move_to(procesador).set_opacity(0)
 
     # Devolver componentes en un diccionario para un acceso claro
     componentes = {
