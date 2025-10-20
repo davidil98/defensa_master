@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 from manim import *
 from manim_slides import Slide
+from spectrum_data_loader import load_df_data
+from scipy.signal import savgol_filter
 
 HOME = r"figures"
 TITLE_SIZE = 50
@@ -156,3 +158,93 @@ def crear_diagrama_sensor_base():
     }
     
     return componentes
+
+class ManimGraph:
+    """
+    Una clase de ayuda para simplificar la creación de gráficas de espectros en Manim.
+    Esta versión desacopla el graficado de la creación de la leyenda para mayor flexibilidad.
+    """
+    def __init__(self, escena):
+        self.escena = escena
+        self.axes = None
+        self.x_range = None
+        self.y_range = None
+
+    def setup_axes(self, x_label, y_label, x_range, y_range, x_length=8, y_length=5, **kwargs):
+        """
+        Crea y configura los ejes de la gráfica.
+        """
+        self.x_range = x_range
+        self.y_range = y_range
+        
+        decimal_config = {"group_with_commas": False}
+
+        self.axes = Axes(
+            x_range=self.x_range, y_range=self.y_range,
+            x_length=x_length, y_length=y_length,
+            axis_config={"include_tip": False, "color": GREY},
+            x_axis_config={"decimal_number_config": decimal_config},
+            y_axis_config={"decimal_number_config": decimal_config},
+            **kwargs
+        ).add_coordinates()
+        
+        x_ax_label = self.axes.get_x_axis_label(Tex(x_label), edge=DOWN, direction=DOWN, buff=0.35)
+        y_ax_label = self.axes.get_y_axis_label(Tex(y_label).rotate(90 * DEGREES), edge=LEFT, direction=LEFT, buff=0.35)
+        
+        self.axes_with_labels = VGroup(self.axes, x_ax_label, y_ax_label)
+        return self.axes_with_labels
+
+    def plot_spectrum(self, filepath, color, smooth=False):
+        """
+        Carga, filtra y grafica los datos. Devuelve solo el objeto de la gráfica.
+        """
+        if self.axes is None:
+            raise Exception("Debes llamar a setup_axes() antes de plot_spectrum()")
+
+        df = load_df_data(filepath)
+        x_min, x_max = self.x_range[:2]
+        filtered_df = df[(df.iloc[:, 0] >= x_min) & (df.iloc[:, 0] <= x_max)]
+        
+        x_data = filtered_df.iloc[:, 0].to_numpy()
+        y_data = filtered_df.iloc[:, 1].to_numpy()
+        
+        y_min, y_max = self.y_range[:2]
+        y_data = np.clip(y_data, y_min, y_max)
+        
+        if smooth:
+            window_length = min(15, len(y_data))
+            if window_length % 2 == 0: window_length -= 1
+            if window_length > 1:
+                y_data = savgol_filter(y_data, window_length=window_length, polyorder=2)
+
+        graph = self.axes.plot_line_graph(
+            x_values=x_data, y_values=y_data,
+            line_color=color, add_vertex_dots=False
+        )
+        
+        return graph
+
+    def create_legend(self, legend_items, position=UR, buff=0.2):
+        """
+        Crea un bloque de leyenda a partir de una lista de textos y colores.
+        Args:
+            legend_items (list): Lista de diccionarios, ej. [{"text": "Mi Curva", "color": BLUE}]
+            position (np.ndarray): Esquina del gráfico para anclar la leyenda (UR, UL, DR, DL).
+            buff (float): Margen interior desde la esquina.
+        """
+        if self.axes is None:
+            raise Exception("Debes configurar los ejes con setup_axes() primero.")
+
+        labels = VGroup()
+        for item in legend_items:
+            label = Tex(item["text"], color=item["color"], font_size=28)
+            labels.add(label)
+        
+        # Alinear las etiquetas verticalmente a la izquierda
+        labels.arrange(DOWN, aligned_edge=LEFT, buff=0.15)
+        
+        # Posicionar el bloque de leyenda dentro del gráfico
+        opposite_direction = -position
+        labels.next_to(self.axes.get_corner(position), opposite_direction, buff=buff)
+        
+        return labels
