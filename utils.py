@@ -122,7 +122,7 @@ def crear_diagrama_sensor_base():
     Retorna un diccionario con los componentes para fácil acceso.
     """
     # Fuente de luz (LED)
-    led_body = Circle(radius=0.45, color=DARKER_GRAY, fill_opacity=0.3)
+    led_body = Circle(radius=0.45, color=WHITE, fill_opacity=0.3)
     led_emitter = Dot(color=RED_E, radius=0.12).move_to(led_body.get_right())
     led_group = VGroup(led_body, led_emitter).move_to(LEFT * 5.5)
     led_label = Tex('Fuente de Luz', font_size=NORMAL_SIZE - 4).next_to(led_group, UP, buff=0.3)

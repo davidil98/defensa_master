@@ -15,6 +15,7 @@ class Introduccion:
         Introduccion.nanomateriales(self)
         Introduccion.gqd(self)
         Introduccion.gqd_quenching(self)
+        Introduccion.cierre_intro(self)
     
     @staticmethod
     def introAgua(self):
@@ -617,7 +618,7 @@ class Introduccion:
 
         # Conclusión final de la sección
         highlight_text = Tex(r"Estrategia Clave:\\Alto Rendimiento Cuántico", font_size=NORMAL_SIZE, color=GREEN_B).next_to(current_pl_curve, UP, buff=0.2)
-        final_note = Tex(r"...y provee los grupos amino (-NH$_2$) necesarios para la detección.", font_size=NORMAL_SIZE).to_edge(DOWN, buff=0.8)
+        final_note = Tex(r"...y provee los grupos amino (-NH$_2$) necesarios para la detección.", font_size=NORMAL_SIZE).to_edge(DOWN, buff=0.2)
         
         self.play(Write(highlight_text))
         self.play(Write(final_note))
@@ -640,15 +641,18 @@ class Introduccion:
         self.canvas['title'] = slide_title_quenching
 
         # Configuración de N-GQD y espectro PL (similar a antes)
-        n_gqd_svg = SVGMobject(f'{HOME}\\n_gqd.svg').scale(1.8).to_edge(LEFT, buff=0.8)
+        n_gqd_svg = SVGMobject(f'{HOME}\\n_gqd.svg').scale(1.4).to_edge(LEFT, buff=0.8)
         n_gqd_label = Tex("N-GQD", font_size=NORMAL_SIZE).next_to(n_gqd_svg, DOWN)
         
+        # Configuración de ejes para el espectro PL
         axes = Axes(
             x_range=[400, 700, 50], y_range=[0, 1.8, 0.5],
             x_length=7, y_length=4,
-            axis_config={"include_numbers": True, "font_size": 24},
-        ).to_edge(RIGHT, buff=1)
-        pl_plot_group = VGroup(axes, axes.get_x_axis_label(Tex("Longitud de Onda (nm)")), axes.get_y_axis_label(Tex("Intensidad PL").rotate(PI/2)))
+            axis_config={"include_numbers": True, "font_size": 21}
+        ).to_edge(RIGHT, buff=1).shift(UP*0.5)
+        x_label = axes.get_x_axis_label(Tex("Longitud de Onda (nm)", font_size=NORMAL_SIZE), edge=DOWN, direction=DOWN, buff=0.35)
+        y_label = axes.get_y_axis_label(Tex("Intensidad PL (u.a.)", font_size=NORMAL_SIZE).rotate(90 * DEGREES), edge=LEFT, direction=LEFT, buff=0.35)
+        pl_plot_group = VGroup(axes, x_label, y_label)
 
         def get_pl_curve(amplitude, color=GREEN_B):
             return axes.plot(lambda x: amplitude * np.exp(-((x - 525)**2) / (2 * 35**2)), color=color, stroke_width=4)
@@ -666,11 +670,11 @@ class Introduccion:
         self.next_slide(notes="La reacción, al igual que la de Griess, requiere un medio ácido.")
 
         # --- Diapositiva 2: El Mecanismo Químico ---
-        ph_acido_tex = Tex(r"Medio Ácido ($H^+$)", font_size=NORMAL_SIZE, color=RED_A).next_to(n_gqd_svg, UP, buff=0.2)
-        nitrito_mol = Tex(r"$NO_2^-$", font_size=NORMAL_SIZE, color=ORANGE).next_to(n_gqd_svg, RIGHT, buff=0.5)
+        ph_acido_tex = Tex(r"Medio Ácido ($H^+$)", font_size=NORMAL_SIZE+2, color=RED_A).next_to(n_gqd_svg, UP, buff=0.8)
+        nitrito_mol = Tex(r"$NO_2^-$", font_size=NORMAL_SIZE, color=ORANGE).next_to(n_gqd_svg, DOWN).shift(LEFT*2)
         
         # Representación del grupo amino en la superficie
-        grupo_amino = Tex(r"-NH$_2$", color=YELLOW).move_to(n_gqd_svg.get_center() + RIGHT*0.5 + UP*0.8)
+        grupo_amino = Tex(r"-NH$_2$", color=YELLOW).next_to(ph_acido_tex, DOWN, buff=0.2).shift(RIGHT)
         
         self.play(Write(ph_acido_tex), )
         self.play(FadeIn(grupo_amino, scale=0.5))
@@ -679,10 +683,10 @@ class Introduccion:
 
         # Transformación química
         grupo_diazo = Tex(r"-N=N-", color=RED).move_to(grupo_amino)
-        explanation_text = Tex(r"Reacción tipo Griess en la superficie:", font_size=NORMAL_SIZE-4).to_edge(DOWN)
-        explanation_text2 = Tex(r"El grupo amino se convierte en un \\textbf{grupo diazo}, un 'quencher' de fluorescencia.", font_size=NORMAL_SIZE-4).next_to(explanation_text, DOWN)
+        explanation_text = Tex(r"Reacción tipo Griess en la superficie:", font_size=NORMAL_SIZE-4).to_edge(DOWN, buff=1)
+        explanation_text2 = Tex(r"El grupo amino se convierte en un \textbf{grupo diazo}, un 'quencher' de fluorescencia.", font_size=NORMAL_SIZE-4).next_to(explanation_text, DOWN)
         
-        new_pl_curve = get_pl_curve(initial_amplitude * 0.15, color=RED_D) # Drástica caída
+        new_pl_curve = get_pl_curve(initial_amplitude * 0.8, color=RED_D) # caída baja
 
         self.play(nitrito_mol.animate.move_to(grupo_amino.get_center() + LEFT*0.2))
         self.play(
@@ -695,68 +699,147 @@ class Introduccion:
         self.next_slide()
 
         # --- Diapositiva 3: Efecto de la Concentración ---
-        nitritos_group = VGroup() # Para agrupar las moléculas de nitrito
         self.play(FadeOut(grupo_diazo, explanation_text, explanation_text2))
-        # Texto indicador de concentración de nitritos
-        concentracion_label = Tex("Concentración de $NO_2^-$:", font_size=NORMAL_SIZE-4).to_edge(DOWN, buff=1.1).shift(LEFT*2)
-        concentracion_valor_str = "Baja"
-        concentracion_valor = Tex(concentracion_valor_str, font_size=NORMAL_SIZE-4, color=YELLOW).next_to(concentracion_label, RIGHT, buff=0.4)
+        
+        concentracion_label = Tex("Concentración de $NO_2^-$:", font_size=NORMAL_SIZE).center().to_edge(DOWN, buff=0.6).shift(LEFT)
+        concentracion_valor = Tex("Baja", font_size=NORMAL_SIZE+2, color=YELLOW).next_to(concentracion_label, RIGHT, buff=1)
         self.play(Write(concentracion_label), Write(concentracion_valor))
-         
+
         quenching_steps = [
-            {"amplitude": 1.2, "num_nitritos": 3, "conc_text": "Moderada", "color": YELLOW_D, "notes": "Al añadir nitritos, la fluorescencia comienza a disminuir."},
-            {"amplitude": 0.7, "num_nitritos": 6, "conc_text": "Media", "color": ORANGE, "notes": "Mayor concentración de nitritos, mayor extinción de fluorescencia."},
-            {"amplitude": 0.3, "num_nitritos": 9, "conc_text": "Alta", "color": RED_D, "notes": "Con alta concentración de nitritos, la fluorescencia se extingue casi por completo."}
+            {"amplitude": 0.5, "conc_text": "Media", "color": RED_B},
+            {"amplitude": 0.2, "conc_text": "Alta", "color": RED_D}
         ]
+             
+        nitritos_group = VGroup()
+        for step in quenching_steps:
+            new_nitritos = VGroup(*[
+                Tex("$NO_2^-$", font_size=NORMAL_SIZE-4, color=step["color"]).move_to(
+                    n_gqd_svg.get_center() + np.array([r * np.cos(a), r * np.sin(a), 0])
+                )
+                for r, a in zip(np.random.uniform(1.2, 1.8, 3), np.random.uniform(0, TAU, 3))
+            ])
+            nitritos_group.add(*new_nitritos)
 
-        # Posiciones para las moléculas de nitrito alrededor del N-GQD
-        nitrito_positions_area = Circle(radius=n_gqd_svg.height/2 + 0.3).move_to(n_gqd_svg.get_center())
+            new_pl_curve = get_pl_curve(step["amplitude"], color=step["color"])
+            new_conc_valor = Tex(step["conc_text"], font_size=NORMAL_SIZE-2, color=step["color"]).move_to(concentracion_valor)
 
-        for i, step in enumerate(quenching_steps):
-            self.next_slide(notes=step["notes"])
-
-            # Añadir más moléculas de nitrito
-            new_nitritos_to_add = VGroup()
-            current_num_nitritos_on_screen = len(nitritos_group)
-            num_to_actually_add = step["num_nitritos"] - current_num_nitritos_on_screen
-
-            for _ in range(num_to_actually_add):
-                # Posición aleatoria alrededor del N-GQD para los nuevos nitritos
-                angle = np.random.uniform(0, TAU)
-                pos_on_circle = nitrito_positions_area.point_from_proportion(angle / TAU) # punto en el círculo
-                # Pequeña variación para que no se solapen exactamente en el círculo
-                random_offset = np.array([np.random.uniform(-0.3,0.3), np.random.uniform(-0.3,0.3), 0])
-                final_pos = pos_on_circle + random_offset
-
-                nitrito_mol = nitrito_mol.copy().move_to(final_pos)
-                new_nitritos_to_add.add(nitrito_mol)
-
-            # Actualizar texto de concentración
-            new_concentracion_valor = Tex(step["conc_text"], font_size=NORMAL_SIZE-4, color=step["color"]).move_to(concentracion_valor)
-
-            # Animar la aparición de nuevos nitritos y la disminución de la PL
-            new_pl_curve = get_pl_curve(step["amplitude"]) # El color del pico se mantiene verde, pero su intensidad baja
-
-            animations = [
+            self.next_slide(notes=f"Al aumentar la concentración a {step['conc_text']}, la fluorescencia sigue disminuyendo.")
+            self.play(
+                FadeIn(new_nitritos, lag_ratio=0.1),
                 Transform(current_pl_curve, new_pl_curve),
-                Transform(concentracion_valor_str, new_concentracion_valor)
+                Transform(concentracion_valor, new_conc_valor)
+            )
+
+        self.next_slide(notes="Unimos todos los componentes asequibles que hemos seleccionado.")
+        self.clear_allSlide_fade()
+
+    @staticmethod
+    def cierre_intro(self):
+        """
+        Cierra la introducción presentando el concepto final del sensor,
+        integrando el N-GQD como el elemento sensibilizador clave.
+        """
+        # --- Diapositiva 1: El Sensor Conceptual ---
+        self.update_canvas()
+        slide_title = Title('Propuesta Conceptual del Sensor', font_size=TITLE_SIZE)
+        self.canvas['title'] = slide_title
+        
+        # Usar la función de utils para crear el diagrama base
+        componentes = crear_diagrama_sensor_base()
+        
+        # Personalizar etiquetas para nuestro diseño final
+        componentes["fuente_label"].become(Tex("LED UV (~365 nm)", font_size=NORMAL_SIZE - 2).next_to(componentes["fuente"], UP, buff=0.3))
+        componentes["selector_label"].become(Tex("Filtro (~510 nm)", font_size=NORMAL_SIZE - 2).next_to(componentes["selector"], DOWN, buff=0.3))
+        componentes["detector_label"].become(Tex("Fotodiodo de Si", font_size=NORMAL_SIZE - 2).next_to(componentes["detector"], UP, buff=0.3))
+        componentes["muestra_label"].become(Tex("Muestra Acuosa", font_size=NORMAL_SIZE - 2).next_to(componentes["muestra"], UP, buff=0.3))
+
+        # Hacer visibles todos los componentes del diagrama
+        for comp in ["selector", "procesador"]:
+            componentes[comp].set_opacity(1)
+            componentes[comp+"_label"].set_opacity(1)
+
+        diagrama_completo = VGroup(*componentes.values()).center().shift(UP)
+        
+        self.play(Write(slide_title))
+        self.play(LaggedStart(
+            *[FadeIn(comp) for comp in componentes.values()],
+            lag_ratio=0.1
+        ))
+        self.next_slide(notes="El componente clave es nuestro nanomaterial.")
+
+        # --- Animación del Elemento Sensibilizador ---
+        n_gqd_svg = SVGMobject(f'{HOME}\\n_gqd.svg').scale(1.5).to_edge(DOWN, buff=0.5)
+        label_n_gqd = Tex(r"\textbf{N-GQD}", font_size=NORMAL_SIZE, color=YELLOW).next_to(n_gqd_svg, UP)
+        
+        self.play(FadeIn(n_gqd_svg, shift=UP), Write(label_n_gqd))
+        self.wait(1)
+        
+        # El N-GQD se convierte en el elemento sensibilizador
+        elemento_sensibilizador = Tex("Elemento Sensibilizador", font_size=NORMAL_SIZE-3, color=ORANGE).move_to(componentes["muestra"]).shift(DOWN)
+        
+        self.play(
+            ReplacementTransform(n_gqd_svg, elemento_sensibilizador),
+            FadeOut(label_n_gqd)
+        )
+        self.wait(1)
+        
+        # Simular puntos cuánticos (posiciones fijas para consistencia)
+        nano_area = Circle(radius=0.6, color=LIGHT_BROWN, fill_opacity=0.3).move_to(componentes["muestra"].get_center())
+        qds = VGroup(*[
+            Dot(radius=0.12, color=GREY_BROWN).move_to(nano_area.get_center() + pos)
+            for pos in [
+                RIGHT * 0.4 + UP * 0.3, LEFT * 0.3 + UP * 0.1,
+                RIGHT * 0.1 + DOWN * 0.1, LEFT * 0.2,
+                RIGHT * 0.3 + DOWN * 0.2, LEFT*0.2 + DOWN*0.4
             ]
-            if len(new_nitritos_to_add) > 0:
-                animations.append(FadeIn(new_nitritos_to_add, scale=0.5, lag_ratio=0.2))
+        ])
+        nano_label = Text('N-GQD', font_size=NORMAL_SIZE-8).next_to(nano_area, DOWN, buff=0.3)
+        nano_group = VGroup(nano_area, qds, nano_label)
 
-            self.play(*animations)
-            nitritos_group.add(*new_nitritos_to_add) # Añade los nuevos a la cuenta
+        self.play(ReplacementTransform(elemento_sensibilizador, nano_group))
 
-        self.next_slide(notes="Este fenómeno de extinción de fluorescencia es la base del sensor de nitritos.")
+        self.next_slide(notes="El LED UV emite luz..." \
+                        "...el N-GQD la absorbe y emite luz visible..." \
+                            "...que es medida por el fotodiodo..." \
+                                "...y convertida en un resultado.")
 
-        conclusion_quenching = Tex(
-            "La interacción N-GQD + $NO_2^-$ (en medio ácido) causa la extinción de la fluorescencia.",
-            font_size=NORMAL_SIZE-2
-        ).next_to(concentracion_label.get_bottom() + DOWN + concentracion_valor.get_bottom() + DOWN, DOWN, buff=0.5) # Ajusta la posición
-        conclusion_quenching.align_to(concentracion_label, LEFT)
+        # Animación final del funcionamiento
+        rayo_in = Line(componentes["fuente"].get_right(), componentes["selector"].get_left(), color=PURPLE)
+        rayo_mid = Line(componentes["selector"].get_right(), componentes["muestra"].get_left(), color=PURPLE)
+        rayo_out = Line(componentes["muestra"].get_right(), componentes["detector"].get_left(), color=GREEN)
+        linea_procesador = DashedLine(componentes["detector"].get_right(), componentes["procesador"].get_left(), color=ORANGE)
+        # continua el paso de luz
+        self.play(ShowPassingFlash(rayo_in.copy().set_stroke(width=8)))
+        self.play(ShowPassingFlash(rayo_mid.copy().set_stroke(width=8)))
+        # Animación de fluorescencia (emisión de luz)
+        colors_emission = [GREEN_A, GREEN_B, GREEN_C, GREEN_D, GREEN_E, LIGHT_BROWN]
+        
+        animations = []
+        for i, qd in enumerate(qds):
+            # Animar el "encendido" de cada punto cuántico
+            animations.append(qd.animate.set_color(colors_emission[i]))
+        self.play(LaggedStart(*animations, lag_ratio=0.1))
+        # continua el paso de luz
+        self.play(ShowPassingFlash(rayo_out.copy().set_stroke(width=8)))
+        self.play(ShowPassingFlash(linea_procesador.copy().set_stroke(width=8)))
+        
+        self.add(rayo_in, rayo_mid, rayo_out, linea_procesador)
+        self.wait(1)
+        self.next_slide(notes="Esto nos lleva a las preguntas centrales de la investigación.")
 
-        self.play(Write(conclusion_quenching))
-        self.next_slide(notes='Sin embargo, debido a la gran facilidad de síntesis se han' \
-        'desarrollado un sinfín de rutas para su obtención, perdiendo un poco de vista el enfoque a una utilidad práctica.')
-        self.next_slide()
+        # --- Diapositiva 2: Preguntas de Investigación ---
+        preguntas_finales = VGroup(
+            Tex(r"Para realizar este concepto, debemos responder:", font_size=NORMAL_SIZE),
+            BulletedList(
+                "¿Qué método de síntesis produce los N-GQD con mejores propiedades ópticas?",
+                "¿Cómo se caracterizan para confirmar su estructura y rendimiento?",
+                "¿Cuál es su desempeño real en la detección de nitritos?",
+                font_size=NORMAL_SIZE, buff=0.4
+            )
+        ).arrange(DOWN, buff=0.8).center()
+
+        self.clear_slide_content()
+        self.play(Write(preguntas_finales))
+
+        self.next_slide(notes="Las siguientes secciones responderán a estas preguntas.")
         self.clear_allSlide_fade()
