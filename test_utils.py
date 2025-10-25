@@ -17,10 +17,12 @@ class TestGraphSmoothing(Scene):
         # 2. Instanciar y configurar la gráfica
         graph_helper = ManimGraph(self)
         axes_group = graph_helper.setup_axes(
-            x_label="Longitud de onda (nm)",
-            y_label="Intensidad PL (u.a.)",
-            x_range=[300, 700, 100],
-            y_range=[0, 3500, 500],
+            x_label=r"Número de onda (cm$^{-1}$)",
+            y_label="Transmitancia (%)",
+            x_range=[400, 4000, 500], # [start, end, step] -> Eje invertido
+            y_range=[0, 110, 20],
+            x_length=10,
+            y_length=5,
         )
         axes_group.to_edge(DOWN, buff=0.8)
         self.play(Create(axes_group))
@@ -31,7 +33,7 @@ class TestGraphSmoothing(Scene):
         self.play(Write(status_text))
         
         # plot_spectrum ahora solo devuelve la curva
-        graph_raw = graph_helper.plot_spectrum("datos/n_gqd_bc.txt", color=BLUE, smooth=False)
+        graph_raw = graph_helper.plot_spectrum("datos/FT-IR/N-GQD_BC_BLC.txt", color=BLUE, smooth=False)
         self.play(Create(graph_raw))
         self.wait(1)
 
@@ -39,7 +41,7 @@ class TestGraphSmoothing(Scene):
         new_status_text = Text("Graficando datos suavizados...").move_to(status_text)
         self.play(Transform(status_text, new_status_text))
 
-        graph_smooth = graph_helper.plot_spectrum("datos/n_gqd_bc.txt", color=GREEN, smooth=True)
+        graph_smooth = graph_helper.plot_spectrum("datos/FT-IR/N-GQD_BC_BLC.txt", color=GREEN, smooth=True)
         self.play(Create(graph_smooth))
         self.wait(1)
         
@@ -49,7 +51,7 @@ class TestGraphSmoothing(Scene):
             {"text": "N-GQD (BC) - Crudo", "color": BLUE},
             {"text": "N-GQD (BC) - Suavizado", "color": GREEN},
         ]
-        legend = graph_helper.create_legend(legend_items, position=UR)
+        legend = graph_helper.create_legend(legend_items, position=DR)
         self.play(Write(legend))
         self.wait(2)
 

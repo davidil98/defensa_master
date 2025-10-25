@@ -1,6 +1,6 @@
 from manim import *
 from chanim import *
-from utils import HOME, NORMAL_SIZE, TITLE_SIZE, TINY_SIZE, crear_diagrama_sensor_base
+from utils import HOME, NORMAL_SIZE, TITLE_SIZE, NORMAL_SIZE, TINY_SIZE, crear_diagrama_sensor_base
 
 class Introduccion:
     @staticmethod
@@ -749,7 +749,7 @@ class Introduccion:
         
         # Personalizar etiquetas para nuestro diseño final
         componentes["fuente_label"].become(Tex("LED UV (~365 nm)", font_size=NORMAL_SIZE - 2).next_to(componentes["fuente"], UP, buff=0.3))
-        componentes["selector_label"].become(Tex("Filtro (~510 nm)", font_size=NORMAL_SIZE - 2).next_to(componentes["selector"], DOWN, buff=0.3))
+        componentes["selector_label"].become(Tex("Filtro", font_size=NORMAL_SIZE - 2).next_to(componentes["selector"], DOWN, buff=0.3))
         componentes["detector_label"].become(Tex("Fotodiodo de Si", font_size=NORMAL_SIZE - 2).next_to(componentes["detector"], UP, buff=0.3))
         componentes["muestra_label"].become(Tex("Muestra Acuosa", font_size=NORMAL_SIZE - 2).next_to(componentes["muestra"], UP, buff=0.3))
 

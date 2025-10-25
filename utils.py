@@ -8,11 +8,11 @@ from spectrum_data_loader import load_df_data
 from scipy.signal import savgol_filter
 
 HOME = r"figures"
+TINY_SIZE = 17
 TITLE_SIZE = 50
 NORMAL_SIZE = 30
-TINY_SIZE = 15
 
-class SlidesControl(Slide):
+class SlidesControl(Slide, ZoomedScene):
     # ------------- funciones control de contenido de diapositivas -------------
     # Cambiar número de diapositiva
     def update_canvas(self):
@@ -177,7 +177,10 @@ class ManimGraph:
         self.x_range = x_range
         self.y_range = y_range
         
-        decimal_config = {"group_with_commas": False}
+        decimal_config = {
+            "group_with_commas": False,
+            "num_decimal_places": 0
+        }
 
         self.axes = Axes(
             x_range=self.x_range, y_range=self.y_range,
@@ -200,7 +203,7 @@ class ManimGraph:
         """
         if self.axes is None:
             raise Exception("Debes llamar a setup_axes() antes de plot_spectrum()")
-
+        
         df = load_df_data(filepath)
         x_min, x_max = self.x_range[:2]
         filtered_df = df[(df.iloc[:, 0] >= x_min) & (df.iloc[:, 0] <= x_max)]
